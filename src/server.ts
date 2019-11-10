@@ -57,6 +57,7 @@ io.on('connection', async (socket: Socket) => {
 // Handle creating a new session
 app.get('/', async (req, res) => {
   const sessionId = uuid()
+  // @ts-ignore
   await redisClient.setAsync(sessionId, JSON.stringify({ players: [] }))
   res.send(sessionId)
 })
@@ -64,6 +65,7 @@ app.get('/', async (req, res) => {
 // Handle joining current session
 app.get('/:session', async (req, res) => {
   const sessionId = req.params.session
+  // @ts-ignore
   const session = await redisClient.getAsync(sessionId)
   if(session !== null)  res.send(session)
   else res.status(400).send('Invalid session ID')

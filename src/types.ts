@@ -1,5 +1,4 @@
 export interface Session {
-    id: uuid
     players: Player[]
 }
 export enum Team {
