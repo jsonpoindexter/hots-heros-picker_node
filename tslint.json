@@ -1,11 +1,24 @@
 {
-  "defaultSeverity": "error",
+  "defaultSeverity": "warning",
   "extends": [
-    "tslint:recommended"
+    "tslint:latest",
+    "tslint-eslint-rules",
+    "tslint-config-prettier"
   ],
-  "jsRules": {},
-  "rules": {
-    "trailing-comma": [ false ]
+  "linterOptions": {
+    "exclude": [
+      "node_modules/**"
+    ]
   },
-  "rulesDirectory": []
+  "rules": {
+    "indent": [true, "spaces", 2],
+    "interface-name": false,
+    "curly": [true, "ignore-same-line"],
+    "no-implicit-dependencies": false,
+    "no-consecutive-blank-lines": false,
+    "no-submodule-imports": false,
+    "object-literal-sort-keys": false,
+    "quotemark": [true, "single", "avoid-escape"],
+    "semicolon": [true, "never"]
+  }
 }

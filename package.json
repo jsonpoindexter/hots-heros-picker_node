@@ -32,7 +32,10 @@
     "@types/morgan": "^1.7.37",
     "@types/redis": "^2.8.14",
     "@types/uuid": "^3.4.6",
+    "prettier": "^1.18.2",
     "tslint": "^5.20.1",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-eslint-rules": "^5.4.0",
     "typescript": "^3.7.2"
   }
 }
