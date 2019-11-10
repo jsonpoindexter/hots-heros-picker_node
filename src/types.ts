@@ -7,6 +7,7 @@ export enum Team {
 }
 
 export interface Player {
+    id: string
     name: string
     team: Team
     selectedId: number | null // Hero index

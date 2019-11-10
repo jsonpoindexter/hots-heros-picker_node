@@ -38,16 +38,18 @@ io.on('connection', async (socket: Socket) => {
   socket.on('session', async sessionId => {
     socket.join(sessionId)
   })
-  socket.on('addPlayer', async ({ sessionId, name, team }) => {
+  socket.on('addPlayer', async ({ sessionId, id, name, team }) => {
     console.log(`addPlayer: { sessionId: ${sessionId}, name: ${name}, team: ${team} }`)
     // @ts-ignore
     const currentSession: Session = JSON.parse(await redisClient.getAsync(sessionId))
-    const playerIndex = currentSession.players.findIndex((player: Player) => player.name === name)
+    const playerIndex = currentSession.players.findIndex((player: Player) => player.id === id)
+    // Update existing player
     if (playerIndex >= 0) {
       currentSession.players[playerIndex].name = name
       currentSession.players[playerIndex].team = team
     } else {
-      currentSession.players.push({ bannedIds: [], selectedId: null, name, team })
+      // Add new player
+      currentSession.players.push({ bannedIds: [], selectedId: null, id, name, team })
     }
     // @ts-ignore
     await redisClient.setAsync(sessionId, JSON.stringify(currentSession))
@@ -67,7 +69,7 @@ app.get('/:session', async (req, res) => {
   const sessionId = req.params.session
   // @ts-ignore
   const session = await redisClient.getAsync(sessionId)
-  if(session !== null)  res.send(session)
+  if (session !== null) res.send(session)
   else res.status(400).send('Invalid session ID')
 })
 
