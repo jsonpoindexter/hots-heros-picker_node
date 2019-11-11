@@ -103,6 +103,14 @@ io.on('connection', async (socket: Socket) => {
             .includes(heroId)
         )
           return
+        // Check if User is trying to ban/un-ban a hero that has been banned by another player
+        if (
+          players
+            .filter((player: Player) => player.id !== id)
+            .flatMap((player: Player) => player.bannedIds)
+            .includes(heroId)
+        )
+          return
         // Toggle selected
         player.selectedId = player.selectedId === heroId ? null : heroId
         // @ts-ignore
