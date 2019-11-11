@@ -86,6 +86,31 @@ io.on('connection', async (socket: Socket) => {
       }
     }
   })
+  socket.on('updateSelectedHero', async ({ sessionId, id, heroId }) => {
+    console.log(`updateSelectedHero: { sessionId: ${sessionId}, id: ${id}, heroId: ${heroId} }`)
+    // @ts-ignore
+    const currentSession: Session = JSON.parse(await redisClient.getAsync(sessionId))
+    if (currentSession) {
+      const playerIndex = currentSession.players.findIndex((player: Player) => player.id === id)
+      if (playerIndex >= 0) {
+        const { players } = currentSession
+        const player = currentSession.players[playerIndex]
+        // Check if User is trying to select a hero that has been selected by another player
+        if (
+          players
+            .filter((player: Player) => player.id !== id)
+            .map((player: Player) => player.selectedId)
+            .includes(heroId)
+        )
+          return
+        // Toggle selected
+        player.selectedId = player.selectedId === heroId ? null : heroId
+        // @ts-ignore
+        await redisClient.setAsync(sessionId, JSON.stringify(currentSession))
+        socket.to(sessionId).emit('updateSelectedHero', { sessionId, id, heroId })
+      }
+    }
+  })
 })
 
 // Handle creating a new session
