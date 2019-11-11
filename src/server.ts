@@ -36,6 +36,7 @@ io.on('connection', async (socket: Socket) => {
   console.log('user connected to socket')
   // Join specific session
   socket.on('session', async sessionId => {
+    console.log('join session: ', sessionId)
     socket.join(sessionId)
   })
   socket.on('addPlayer', async ({ sessionId, id, name, team }) => {
@@ -54,7 +55,7 @@ io.on('connection', async (socket: Socket) => {
       }
       // @ts-ignore
       await redisClient.setAsync(sessionId, JSON.stringify(currentSession))
-      socket.broadcast.emit('addPlayer', { sessionId, id, name, team })
+      socket.to(sessionId).emit('addPlayer', { sessionId, id, name, team })
     }
   })
   socket.on('updatePlayerName', async ({ sessionId, id, name }) => {
@@ -67,7 +68,7 @@ io.on('connection', async (socket: Socket) => {
         currentSession.players[playerIndex].name = name
         // @ts-ignore
         await redisClient.setAsync(sessionId, JSON.stringify(currentSession))
-        socket.broadcast.emit('updatePlayerName', { sessionId, id, name })
+        socket.to(sessionId).emit('updatePlayerName', { sessionId, id, name })
       }
     }
   })
@@ -81,7 +82,7 @@ io.on('connection', async (socket: Socket) => {
         currentSession.players[playerIndex].team = team
         // @ts-ignore
         await redisClient.setAsync(sessionId, JSON.stringify(currentSession))
-        socket.broadcast.emit('updatePlayerTeam', { sessionId, id, team })
+        socket.to(sessionId).emit('updatePlayerTeam', { sessionId, id, team })
       }
     }
   })
