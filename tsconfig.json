@@ -2,7 +2,16 @@
   "compilerOptions": {
     "module": "commonjs",
     "esModuleInterop": true,
-    "target": "es6",
+    "target": "esnext",
+    "lib": [
+      "es2019",
+      "esnext",
+      "dom",
+      "dom.iterable"
+    ],
+    "importHelpers": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,

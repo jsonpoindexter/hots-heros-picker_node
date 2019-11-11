@@ -39,8 +39,8 @@ io.on('connection', async (socket: Socket) => {
     console.log('join session: ', sessionId)
     socket.join(sessionId)
   })
-  socket.on('addPlayer', async ({ sessionId, id, name, team }) => {
-    console.log(`addPlayer: { sessionId: ${sessionId}, name: ${name}, team: ${team} }`)
+  socket.on('addPlayer', async ({ sessionId, id, name, team, selectedId, bannedIds }) => {
+    console.log(`addPlayer: { sessionId: ${sessionId}, name: ${name}, team: ${team}, selectedId: ${selectedId}, bannedIds, ${bannedIds}`)
     // @ts-ignore
     const currentSession: Session = JSON.parse(await redisClient.getAsync(sessionId))
     if (currentSession) {
@@ -51,11 +51,11 @@ io.on('connection', async (socket: Socket) => {
         currentSession.players[playerIndex].team = team
       } else {
         // Add new player
-        currentSession.players.push({ bannedIds: [], selectedId: null, id, name, team })
+        currentSession.players.push({ bannedIds, selectedId, id, name, team })
       }
       // @ts-ignore
       await redisClient.setAsync(sessionId, JSON.stringify(currentSession))
-      socket.to(sessionId).emit('addPlayer', { sessionId, id, name, team })
+      socket.to(sessionId).emit('addPlayer', { sessionId, id, name, team, selectedId, bannedIds })
     }
   })
   socket.on('updatePlayerName', async ({ sessionId, id, name }) => {
@@ -108,6 +108,32 @@ io.on('connection', async (socket: Socket) => {
         // @ts-ignore
         await redisClient.setAsync(sessionId, JSON.stringify(currentSession))
         socket.to(sessionId).emit('updateSelectedHero', { sessionId, id, heroId })
+      }
+    }
+  })
+  socket.on('updateBannedHero', async ({ sessionId, id, heroId }) => {
+    console.log(`updateBannedHero: { sessionId: ${sessionId}, id: ${id}, heroId: ${heroId} }`)
+    // @ts-ignore
+    const currentSession: Session = JSON.parse(await redisClient.getAsync(sessionId))
+    if (currentSession) {
+      const playerIndex = currentSession.players.findIndex((player: Player) => player.id === id)
+      if (playerIndex >= 0) {
+        const { players } = currentSession
+        const player = currentSession.players[playerIndex]
+        console.log(players)
+        // Check if User is trying to ban/un-ban a hero that has been banned by another player
+        if (
+          players
+            .filter((player: Player) => player.id !== id)
+            .flatMap((player: Player) => player.bannedIds)
+            .includes(heroId)
+        )
+          return
+        const index = player.bannedIds.findIndex((id: number) => id === heroId)
+        index >= 0 ? player.bannedIds.splice(index, 1) : player.bannedIds.push(heroId)
+        // @ts-ignore
+        await redisClient.setAsync(sessionId, JSON.stringify(currentSession))
+        socket.to(sessionId).emit('updateBannedHero', { sessionId, id, heroId })
       }
     }
   })
