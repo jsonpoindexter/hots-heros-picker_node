@@ -42,17 +42,48 @@ io.on('connection', async (socket: Socket) => {
     console.log(`addPlayer: { sessionId: ${sessionId}, name: ${name}, team: ${team} }`)
     // @ts-ignore
     const currentSession: Session = JSON.parse(await redisClient.getAsync(sessionId))
-    const playerIndex = currentSession.players.findIndex((player: Player) => player.id === id)
-    // Update existing player
-    if (playerIndex >= 0) {
-      currentSession.players[playerIndex].name = name
-      currentSession.players[playerIndex].team = team
-    } else {
-      // Add new player
-      currentSession.players.push({ bannedIds: [], selectedId: null, id, name, team })
+    if (currentSession) {
+      const playerIndex = currentSession.players.findIndex((player: Player) => player.id === id)
+      // Update existing player
+      if (playerIndex >= 0) {
+        currentSession.players[playerIndex].name = name
+        currentSession.players[playerIndex].team = team
+      } else {
+        // Add new player
+        currentSession.players.push({ bannedIds: [], selectedId: null, id, name, team })
+      }
+      // @ts-ignore
+      await redisClient.setAsync(sessionId, JSON.stringify(currentSession))
+      socket.broadcast.emit('addPlayer', { sessionId, id, name, team })
     }
+  })
+  socket.on('updatePlayerName', async ({ sessionId, id, name }) => {
+    console.log(`updatePlayerName: { sessionId: ${sessionId}, id: ${id}, name: ${name} }`)
     // @ts-ignore
-    await redisClient.setAsync(sessionId, JSON.stringify(currentSession))
+    const currentSession: Session = JSON.parse(await redisClient.getAsync(sessionId))
+    if (currentSession) {
+      const playerIndex = currentSession.players.findIndex((player: Player) => player.id === id)
+      if (playerIndex >= 0) {
+        currentSession.players[playerIndex].name = name
+        // @ts-ignore
+        await redisClient.setAsync(sessionId, JSON.stringify(currentSession))
+        socket.broadcast.emit('updatePlayerName', { sessionId, id, name })
+      }
+    }
+  })
+  socket.on('updatePlayerTeam', async ({ sessionId, id, team }) => {
+    console.log(`updatePlayerTeam: { sessionId: ${sessionId}, id: ${id}, team: ${team} }`)
+    // @ts-ignore
+    const currentSession: Session = JSON.parse(await redisClient.getAsync(sessionId))
+    if (currentSession) {
+      const playerIndex = currentSession.players.findIndex((player: Player) => player.id === id)
+      if (playerIndex >= 0) {
+        currentSession.players[playerIndex].team = team
+        // @ts-ignore
+        await redisClient.setAsync(sessionId, JSON.stringify(currentSession))
+        socket.broadcast.emit('updatePlayerTeam', { sessionId, id, team })
+      }
+    }
   })
 })
 
