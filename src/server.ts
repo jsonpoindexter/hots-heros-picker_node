@@ -128,7 +128,14 @@ io.on('connection', async (socket: Socket) => {
       if (playerIndex >= 0) {
         const { players } = currentSession
         const player = currentSession.players[playerIndex]
-        console.log(players)
+        // Check if User is trying to ban a hero that has been selected by another player
+        if (
+          players
+            .filter((player: Player) => player.id !== id)
+            .map((player: Player) => player.selectedId)
+            .includes(heroId)
+        )
+          return
         // Check if User is trying to ban/un-ban a hero that has been banned by another player
         if (
           players
